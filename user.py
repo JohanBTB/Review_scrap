@@ -64,7 +64,7 @@ class User:
             os.makedirs(json_directory)
             
         if self.users:
-            with open(f"{current_directory + json_directory}\\{self.name}", "w") as f:
+            with open(f"{current_directory + json_directory}\\{self.name}.json", "w") as f:
                 json.dump(self.users, f, indent=4)
             print('JSON file done')
         else:
