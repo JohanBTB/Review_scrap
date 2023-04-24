@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import json
-def merge(path, filename, key, unique=False):
+def merge(paths , filename, key, unique=False):
     """
     recupera los archivos json
 
@@ -10,37 +10,38 @@ def merge(path, filename, key, unique=False):
 
     En caso de no querer ser unicos, se creara una lista global en el que se agregaran los dicts
     """
-    
-    list_dir = os.listdir(path)
     list_dicts = []
     current_directory = os.getcwd()
     json_directory = "json_processing\\json_files"
-    for file in list_dir:
-        set_keys = set()
-        try:
-            with open(os.path.join(path,file)) as f:
-                data = json.load(f)
-                if unique and key:
-                    for d in data:
-
-                        if (d[key] in set_keys):
-                            continue
-                        set_keys.add(d[key])
-                        list_dicts.append(d)
-
-                else:
-                    list_dicts.extend(data)
-                
+    set_keys = set()
+    for path in paths:
+        
+        path = os.path.join(current_directory, path)
+        list_dir = os.listdir(path)
+        
+        for file in list_dir:
+            try:
+                with open(os.path.join(path,file)) as f:
+                    data = json.load(f)
+                    if unique and key:
+                        for d in data:
     
-                
-        except FileNotFoundError:
-                return print("The file does not exist.")
-
+                            if (d[key] in set_keys):
+                                continue
+                            set_keys.add(d[key])
+                            list_dicts.append(d)
+                    else:
+                        list_dicts.extend(data)
+                    
+        
+                    
+            except FileNotFoundError:
+                    return print("The file does not exist.")
+    
     if not os.path.exists(os.path.join(current_directory, json_directory)):
         os.mkdir(os.path.join(current_directory, json_directory))
-    
-    with open(os.path.join(current_directory, json_directory,filename ),"w") as json_dir:
         
+    with open(os.path.join(current_directory, json_directory,filename ),"w") as json_dir:
         json.dump(list_dicts, json_dir, indent=4)
 
 

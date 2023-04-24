@@ -13,9 +13,9 @@ class Movier:
         self.name = name
         self.movies = []
         
-        self.__json_directory = "\\movie\\movies_json"
+        self.__json_directory = "movie\\movies_json"
         self.__current_directory = os.getcwd()
-        
+        self.__filename = f"movies_{self.name}.json"
     
     def get_json_directory(self):
         return self.__json_directory
@@ -29,27 +29,33 @@ class Movier:
         It does not perform any any writing operation
         """
         
-        directory = os.getcwd() + "\\review\\reviews_json"
-        file_path = directory + f"\\reviews_{self.name}.json"
+        file_path = os.path.join(self.__current_directory, f"review\\reviews_json\\reviews_{self.name}.json")
         
         try:
             with open(file_path, 'r') as f:
                 dict_movies = json.load(f)
         except FileNotFoundError:
-            return print("File no found, omitting user...")
+            return print("File no found, omitting movies...")
         
         print(f"Getting movies from {self.name}...")
-        for i in range(len(dict_movies)):
-            dict_movie = dict_movies[i]
+        
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
+        session = requests.Session()
+        session.headers.update(headers)
+        
+        for i, dict_movie in enumerate(dict_movies):
             url = dict_movie['href']
             movie_info = {}
             movie_info['name'] = dict_movie['movie']
+            movie_info['href'] = url
             try:
-                headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
                 list_labels = ['Starring','Genre(s)']
-                response = requests.get(url, headers=headers)
+
+                response = session.get(url)
                 soup = BeautifulSoup(response.content, 'html.parser')
                 rows = list(soup.find_all('span', class_='label'))
+                score = soup.find('span', class_='metascore_w')
+                movie_info['score'] = score.text
                 for row in rows:
                     parent_span = row.find_parent()
                     spans = parent_span.find_all('span')
@@ -58,7 +64,7 @@ class Movier:
                     if label in list_labels:
                         value = [x.strip() for x in value.strip().split(', ')] 
                     movie_info[label] = value
-                
+                    
                 self.movies.append(movie_info)
                 print(f'Movie {i} done...')
             except Exception:
@@ -71,17 +77,18 @@ class Movier:
         """
         This functions creates a JSON file for each movie, if it does not exists, and rewrites the file
         """
-        
-        print(self.__current_directory + self.__json_directory)
-        if not os.path.exists(self.__current_directory + self.__json_directory):
-            os.makedirs(self.__json_directory)
+        try:
+            file_path = os.path.join(self.__current_directory, self.__json_directory)
+            os.makedirs(file_path, exist_ok=True)
+            if self.movies:
+                with open(os.path.join(file_path, self.__filename), "w") as f:
+                    json.dump(self.movies,f,indent=4)
+                print("JSON file done")
+            else:
+                print("No data")
+        except Exception as e:
+            print(f"Error writing the JSON file: {e}")
             
-        if self.movies:
-            with open(f'{self.__current_directory + self.__json_directory}\\movies_{self.name}.json', 'w') as file:
-                json.dump(self.movies, file, indent=4) 
-        else:
-            print('No data')
-        print("JSON file done")
 
     def get_json(self):
         """
@@ -89,7 +96,7 @@ class Movier:
         """
         
         try:
-            with open(f"{self.__current_directory + self.__json_directory}\\movies_{self.name}.json") as f:
+            with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
                 data = json.load(f)
                 print("Retrieving data")
                 return data

@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 from json_processing.json_utils import merge
-import os
 
-movies_path = os.path.join(os.getcwd(), "movie\\movies_json")
-users_path = os.path.join(os.getcwd(), "user\\users_json")
-reviews_path = os.path.join(os.getcwd(), "review\\reviews_json")
+movies_paths = ["movie\\movies_json","movie_rotten\\movies_json"]
+users_paths = ["user\\users_json","user_rotten\\users_json" ]
+reviews_paths = ["review\\reviews_json", "review\\reviews_json"]
 
 # Para movies
-merge(movies_path,"all_movies.json","name",True)
+merge(movies_paths,"all_movies.json","name",True)
 
 
 # Para users
-merge(users_path,"all_users.json","name",True)
+# merge(users_paths,"all_users.json","name",True)
 
 
 # Para reviews
-merge(reviews_path,"all_reviews.json","name")
+# merge(reviews_paths,"all_reviews.json","name")

@@ -19,9 +19,9 @@ class Reviewer:
         self.pages = pages
         self.actual_page = actual_page
         self.reviews = []
-        self.__json_directory = "\\review\\reviews_json"
+        self.__json_directory = "review\\reviews_json"
         self.__current_directory = os.getcwd()
-        
+        self.__filename = f"reviews_{self.name}.json"
     
     def get_json_directory(self):
         return self.__json_directory
@@ -46,8 +46,7 @@ class Reviewer:
             
             try:
                 review_contents = list(soup.find('ol', class_='reviews').find_all('div', class_='review_content'))
-                for i in range(len(review_contents)):
-                    content = review_contents[i]
+                for i, content in enumerate(review_contents):
                     try:
                         score = content.find('li', class_='brief_critscore').span.text
                         href = 'https://www.metacritic.com' + content.find('div', class_='review_product').find('a').get('href')
@@ -74,15 +73,18 @@ class Reviewer:
         This functions creates a JSON file for each reviewer, if it does not exists, and rewrites the file
         """
 
-        if not os.path.exists(self.__current_directory + self.__json_directory):
-            os.makedirs(self.__json_directory)
-            
-        if self.reviews:
-            with open(f"{self.__current_directory + self.__json_directory}\\reviews_{self.name}.json", "w") as f:
-                json.dump(self.reviews, f, indent=4)
-            print('JSON file done')
-        else:
-            print('No data')
+        try:
+            file_path = os.path.join(self.__current_directory, self.__json_directory)
+            os.makedirs(os.path.join(file_path), exist_ok=True)
+            if self.reviews:
+                with open(os.path.join(file_path, self.__filename), 'w') as f:
+                    json.dump(self.reviews,f,indent = 4)
+                print("JSON file done")
+            else:
+                print("No data")
+        except Exception:
+            print("Error writing the JSON file")
+
     
     
     def get_json(self):
@@ -90,9 +92,11 @@ class Reviewer:
         This functions return the JSON file of the reviewer if it exists.
         """
         try:
-            with open(f"{self.__current_directory + self.__json_directory}\\reviews_{self.name}.json") as f:
+            with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
                 data = json.load(f)
                 print("Retrieving data")
                 return data
         except FileNotFoundError:
+
             print("No data found")
+            return None
