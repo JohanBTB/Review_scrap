@@ -18,7 +18,6 @@ def merge(paths , filename, key, unique=False):
         
         path = os.path.join(current_directory, path)
         list_dir = os.listdir(path)
-        
         for file in list_dir:
             try:
                 with open(os.path.join(path,file)) as f:
@@ -33,7 +32,6 @@ def merge(paths , filename, key, unique=False):
                     else:
                         list_dicts.extend(data)
                     
-        
                     
             except FileNotFoundError:
                     return print("The file does not exist.")
