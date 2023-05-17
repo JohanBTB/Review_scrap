@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
-
+# import asyncio
+# import aiohttp
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -23,14 +23,24 @@ class Movier:
     def get_current_directory(self):
         return self.__current_directory
     
-    def get_movies(self):
+    def get_movies(self, append = True, check_all = False):
         """
         This function is responsible for retrieving the information through web scraping.
         It does not perform any any writing operation
         """
         
-        file_path = os.path.join(self.__current_directory, f"review\\reviews_json\\reviews_{self.name}.json")
+        if append:
+            try:
+                with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
+                    self.movies = json.load(f)
+                    id_movies = set([ x['name'] for x in self.movies])    
+                    
+            except FileNotFoundError:
+                print("No file to append new data...")
+                id_movies = set()
         
+        
+        file_path = os.path.join(self.__current_directory, f"review\\reviews_json\\reviews_{self.name}.json")
         try:
             with open(file_path, 'r') as f:
                 dict_movies = json.load(f)
@@ -48,6 +58,14 @@ class Movier:
             movie_info = {}
             movie_info['name'] = dict_movie['movie']
             movie_info['href'] = url
+            
+            if movie_info['name'] in id_movies:
+                if not check_all: 
+                    print("This movie has already been checked, closing execution...")
+                    break
+                print(f"\tThe movie {movie_info['name']} have been already accepted.")
+                continue
+            
             try:
                 list_labels = ['Starring','Genre(s)']
 
@@ -64,7 +82,7 @@ class Movier:
                     if label in list_labels:
                         value = [x.strip() for x in value.strip().split(', ')] 
                     movie_info[label] = value
-                    
+                id_movies.add(movie_info['name'])
                 self.movies.append(movie_info)
                 print(f'Movie {i} done...')
             except Exception:
@@ -80,6 +98,7 @@ class Movier:
         try:
             file_path = os.path.join(self.__current_directory, self.__json_directory)
             os.makedirs(file_path, exist_ok=True)
+            
             if self.movies:
                 with open(os.path.join(file_path, self.__filename), "w") as f:
                     json.dump(self.movies,f,indent=4)

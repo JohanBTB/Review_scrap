@@ -29,12 +29,22 @@ class Reviewer:
     def get_current_directory(self):
         return self.__current_directory
     
-    def get_reviews(self):
+    def get_reviews(self, append = True, check_all = True ):
         """
         This function is responsible for retrieving the information through web scraping.
         It does not perform any any writing operation
 
         """
+        
+        if append:
+            try:
+                with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
+                    self.reviews = json.load(f)
+                    href_movies = set([ x['movie'] for x in self.reviews])    
+                    
+            except FileNotFoundError:
+                print("No file to append new data...")
+                href_movies = set()
         
         print('Getting reviews...')
         for j in range(self.actual_page, self.actual_page+ self.pages):
@@ -51,6 +61,14 @@ class Reviewer:
                         score = content.find('li', class_='brief_critscore').span.text
                         href = 'https://www.metacritic.com' + content.find('div', class_='review_product').find('a').get('href')
                         movie = content.find('div', class_='review_product').find('a').text
+                        
+                        if movie in href_movies:
+                            if not check_all: 
+                                print("This review has already been checked, closing execution...")
+                                break
+                            print(f"\tThis review of {movie} have been already accepted.")
+                            continue
+                        href_movies.add(movie)
                         review={
                             'name':self.name,
                             'movie':movie,

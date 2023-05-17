@@ -17,13 +17,26 @@ class User:
         self.users = []
         self.__filename = f"users_{self.name}.json"
         
-    def get_users(self):
+    def get_users(self, append = True, check_all = True):
         """
         This function is responsible for retrieving the information through web scraping.
         It does not perform any any writing operation
+        Append indicates if you want to append new users and dont delete the file that is already there
+        Check_all indicates that if there is  an existant user in this page, it indicates this point has already seen, so the function is interrupted
         """
         
         file_path = os.path.join(self.__current_directory, f"movie_rotten\\movies_json\\movies_{self.name}.json")
+        
+        if append:
+            try:
+                with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
+                    self.users = json.load(f)
+                    hrefs = set([ x['href'] for x in self.users])    
+                    
+            except FileNotFoundError:
+                print("No file to append new data...")
+                hrefs = set()
+        
         
         try:
             with open(file_path, 'r') as f:
@@ -32,7 +45,6 @@ class User:
             return print("File no found, omitting user...")
         
         print('Getting users...')
-        hrefs = set()
         session = requests.Session()
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
         session.headers.update(headers)
@@ -61,12 +73,16 @@ class User:
                     response2 = session.get(user_url, headers=headers)
                     soup2 = BeautifulSoup(response2.content, 'html.parser')
                     reviews = list(soup2.find_all('li',class_="ratings__user-rating-review"))
-                    if len(reviews)<self.min_reviews:
-                        print(f"\t - User {name} does not have enough reviews (Only {len(reviews)})...")
-                        continue
                     
                     if user_url in hrefs:
+                        if not check_all: 
+                            print("\t • This user has already been checked, closing execution...")
+                            break
                         print(f"\t • User {name} already added...")
+                        continue
+                    
+                    if len(reviews)<self.min_reviews:
+                        print(f"\t - User {name} does not have enough reviews (Only {len(reviews)})...")
                         continue
                     
                     user = {}

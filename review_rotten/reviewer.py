@@ -24,12 +24,24 @@ class Reviewer:
     def get_current_directory(self):
         return self.__current_directory
     
-    def get_reviews(self):
+    def get_reviews(self, append = True, check_all = False):
         """
         This function is responsible for retrieving the information through web scraping.
         It does not perform any any writing operation
 
         """
+        
+        if append:
+            try:
+                with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
+                    self.reviews = json.load(f)
+                    id_reviews = set([ x['name']+x['movie'] for x in self.reviews])    
+                    
+            except FileNotFoundError:
+                print("No file to append new data...")
+                id_reviews = set()
+        
+        
         file_path = os.path.join(self.__current_directory, f"user_rotten\\users_json\\users_{self.name}.json")
         if not os.path.exists(file_path):
             return print("File no found, omitting webpage")
@@ -57,6 +69,14 @@ class Reviewer:
                     print(f'\tReading review {j+1}...')
                     try:
                         movie = review.find("a", class_="ratings__movie-title").text.strip()
+                        
+                        if name+movie in id_reviews:
+                            if not check_all: 
+                                print("This point has already been checked, closing execution...")
+                                break
+                            print(f"\tThis review of {movie} have been already accepted.")
+                            continue
+                        
                         stars = len(list(review.find('div', class_="ratings__rating-stars").find_all('span',class_="star-display__filled")))
                         date = review.find("a", class_="ratings__age").text.strip()
                         comment = review.find('p', class_="ratings__comment").text.strip()

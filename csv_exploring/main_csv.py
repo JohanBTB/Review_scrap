@@ -49,7 +49,7 @@ movies_path = os.path.join(current_directory, "csv_cleaning", "csv_files","movie
 
 # --------------------------- Exploring movies -------------------------------
 
-movies = pd.read_csv(movies_path, index_col = 'movies_id', parse_dates=['Release Date'])
+# movies = pd.read_csv(movies_path, index_col = 'movies_id', parse_dates=['Release Date'])
 
 
 
@@ -81,7 +81,5 @@ movies = pd.read_csv(movies_path, index_col = 'movies_id', parse_dates=['Release
 # axs[1].title.set_text('Duracion vs Tiempo')
 
 
-# movies = movies.astype({'score':'int16' })
 
-# score critic_score
 

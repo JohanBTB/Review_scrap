@@ -79,15 +79,25 @@ class Movier:
                 pass
                     
     
-    def get_movies(self):
+    def get_movies(self, append = True, check_all = False):
         """
         This function is responsible for retrieving the information through web scraping.
         It does not perform any any writing operation
         """
         
+        if append:
+            try:
+                with open(os.path.join(self.__current_directory, self.__json_directory, self.__filename)) as f:
+                    self.movies = json.load(f)
+                    visited_movies = set([ x['name'] for x in self.movies])    
+                    
+            except FileNotFoundError:
+                print("No file to append new data...")
+                visited_movies = set()
+        
+        
         print('Getting movies...')
-        visited_movie_links = set()
-        visited_movie_links.add("")
+        visited_movies.add("")
         
         session = requests.Session()
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
@@ -120,7 +130,10 @@ class Movier:
                         href = tile.get('href')
                     
                     href ="https://www.rottentomatoes.com" + href
-                    if href in visited_movie_links:
+                    if name in visited_movies:
+                        if not check_all: 
+                            print("This movie has already been checked, closing execution...")
+                            continue
                         print(f"\t • Movie {name} have been already accepted.")
                         continue
                 except AttributeError:
@@ -150,7 +163,7 @@ class Movier:
                     pass
                 
                 movie = {}
-                visited_movie_links.add(href)
+                visited_movies.add(href)
 
                 
                 movie = {key: value for key, value in zip(movie_keys, movie_values)}
